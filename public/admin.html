@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel · Acero Eventos</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800;900&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { min-height: 100vh; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px var(--gutter) 80px; }
+    .top { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+    .top .brand { margin-right: auto; }
+    h1 { font-size: clamp(30px, 5vw, 48px); font-weight: 800; margin-bottom: 8px; }
+    .muted { color: var(--muted); margin: 0 0 28px; }
+    .login { max-width: 420px; margin: 12vh auto 0; }
+    .login form { display: grid; gap: 14px; }
+    .err { color: #ff7a9f; min-height: 24px; margin: 0; font-weight: 600; }
+    .drop {
+      display: grid; place-items: center; text-align: center; gap: 10px; padding: 48px 20px; border-radius: var(--radius);
+      border: 2px dashed #3a3a45; background: var(--bg-2); cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .drop.over, .drop:hover { border-color: var(--hot); background: #1a1016; }
+    .drop strong { font: 800 22px var(--display); }
+    .drop input { display: none; }
+    .caption-row { display: flex; gap: 10px; margin: 16px 0 36px; flex-wrap: wrap; }
+    .caption-row .input { flex: 1 1 260px; }
+    .queue { display: grid; gap: 8px; margin-bottom: 36px; }
+    .q { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); font-size: 14px; }
+    .q progress { grid-column: 1 / -1; width: 100%; height: 6px; accent-color: var(--hot); }
+    .q.ok { border-color: #2f6b45; } .q.bad { border-color: #8a2b45; }
+    .list-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+    .list-head h2 { font-size: 24px; font-weight: 800; }
+    .grid { align-items: start; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .tile { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+    .tile .thumb { aspect-ratio: 4 / 3; background: #000; overflow: hidden; }
+    .tile .thumb img, .tile .thumb video { aspect-ratio: 4 / 3; }
+    .tile .thumb img, .tile .thumb video { width: 100%; height: 100%; object-fit: cover; }
+    .tile .meta { padding: 10px; display: grid; gap: 8px; }
+    .tile input { width: 100%; min-height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 500 14px var(--body); }
+    .tile .actions { display: flex; gap: 6px; }
+    .mini { flex: 1; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-3); color: var(--text); font: 600 13px var(--body); cursor: pointer; }
+    .mini:hover { border-color: #666; }
+    .mini.del { color: #ff7a9f; }
+    .mini.del:hover { background: #3a1020; border-color: #8a2b45; }
+    .badge { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/"><span class="brand-mark">ACERO</span><span class="brand-sub">panel</span></a>
+      <a class="btn btn-ghost btn-sm" href="/#galeria" target="_blank" rel="noopener">Ver la web</a>
+      <button class="btn btn-ghost btn-sm" id="logout" hidden>Salir</button>
+    </div>
+
+    <section class="login" id="login-view">
+      <h1>Panel de galería</h1>
+      <p class="muted">Ingresá el PIN para subir o borrar fotos y videos.</p>
+      <form id="login-form">
+        <label class="input"><span>PIN</span><input type="password" id="pin" autocomplete="current-password" inputmode="numeric" required></label>
+        <button class="btn btn-hot" type="submit">Entrar</button>
+        <p class="err" id="login-err" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="app-view" hidden>
+      <h1>Galería</h1>
+      <p class="muted">Lo que subas aparece al instante en la sección “Fiestas reales” de la web. Las fotos se optimizan solas antes de subir. Videos hasta 120 MB.</p>
+
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple>
+        <strong>Subir fotos o videos</strong>
+        <span class="muted" style="margin:0">Tocá para elegir o arrastrá los archivos acá</span>
+      </label>
+      <div class="caption-row">
+        <label class="input"><span>Texto para lo que subas ahora (opcional)</span><input type="text" id="caption" maxlength="140" placeholder="Ej: XV de Martina · Salón Acero"></label>
+      </div>
+
+      <div class="queue" id="queue"></div>
+
+      <div class="list-head"><h2>Publicado</h2><span class="badge" id="count"></span></div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>
